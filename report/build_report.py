@@ -26,7 +26,8 @@ t = t.replace('{{TABLE1}}', '\n'.join(rows))
 rows = []
 for k, v in re.findall(r'^(.+?)\s+val MAP@5 = ([\d.]+)$', open(f'{A}/select_hybrid.txt').read(), re.M):
     k = k.replace('HGB pointwise', 'HistGradientBoosting, pointwise').replace('LGBM lambdarank', 'LightGBM LambdaRank') \
-         .replace(', fit+fit2', ', fitted on FOLDS2').replace(', fit', ', fitted on fit').replace('FOLDS2', 'fit + fit2')
+         .replace(', fit+fit2', ', fitted on fit + fit2') if k.endswith('fit2') else k.replace('HGB pointwise', 'HistGradientBoosting, pointwise') \
+         .replace('LGBM lambdarank', 'LightGBM LambdaRank').replace(', fit', ', fitted on fit')
     cls = ' class="best"' if k == 'LightGBM LambdaRank, fitted on fit' else ''
     rows.append(f'<tr{cls}><td>{k}{" (final)" if cls else ""}</td><td class="n">{v}</td></tr>')
 t = t.replace('{{TABLE2}}', '\n'.join(rows))
