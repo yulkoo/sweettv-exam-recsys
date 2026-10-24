@@ -1,0 +1,382 @@
+{
+ "heavy": {
+  "user": 4644788228960559738,
+  "hours": 573.1641666666667,
+  "n_hist_items": 441,
+  "n_truth": 96,
+  "history_top": [
+   2400480,
+   12001682,
+   240081,
+   2400508,
+   2400467
+  ],
+  "val": {
+   "popularity": {
+    "ids": [
+     2400480,
+     240081,
+     6500479,
+     2400467,
+     2400508
+    ],
+    "ap5": 0.52,
+    "hits": [
+     true,
+     true,
+     false,
+     false,
+     true
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "history": {
+    "ids": [
+     2400480,
+     12001682,
+     10002893,
+     2400508,
+     240081
+    ],
+    "ap5": 1.0,
+    "hits": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "cbf": {
+    "ids": [
+     5900347,
+     5900319,
+     500346,
+     2400480,
+     2400467
+    ],
+    "ap5": 0.16666666666666666,
+    "hits": [
+     false,
+     false,
+     true,
+     true,
+     false
+    ],
+    "seen": [
+     true,
+     false,
+     true,
+     true,
+     true
+    ]
+   },
+   "assoc_rules": {
+    "ids": [
+     2400480,
+     240081,
+     6500479,
+     2400467,
+     2400508
+    ],
+    "ap5": 0.52,
+    "hits": [
+     true,
+     true,
+     false,
+     false,
+     true
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "als": {
+    "ids": [
+     90073872,
+     90080832,
+     400361,
+     90073713,
+     12001732
+    ],
+    "ap5": 0.04,
+    "hits": [
+     false,
+     false,
+     false,
+     false,
+     true
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     false,
+     true
+    ]
+   },
+   "ppr": {
+    "ids": [
+     2400480,
+     240081,
+     12001682,
+     2400508,
+     2400467
+    ],
+    "ap5": 0.8,
+    "hits": [
+     true,
+     true,
+     true,
+     true,
+     false
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "hybrid": {
+    "ids": [
+     2400480,
+     240081,
+     2400508,
+     12001682,
+     2400467
+    ],
+    "ap5": 0.8,
+    "hits": [
+     true,
+     true,
+     true,
+     true,
+     false
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  "test_hybrid": [
+   2400480,
+   240081,
+   12001682,
+   12001734,
+   2400508
+  ]
+ },
+ "light": {
+  "user": 17112186088201306492,
+  "hours": 57.77166666666667,
+  "n_hist_items": 98,
+  "n_truth": 46,
+  "history_top": [
+   400357,
+   90081779,
+   90056319,
+   90073874,
+   90074560
+  ],
+  "val": {
+   "popularity": {
+    "ids": [
+     2400480,
+     240081,
+     6500479,
+     2400467,
+     2400508
+    ],
+    "ap5": 0.52,
+    "hits": [
+     true,
+     true,
+     false,
+     false,
+     true
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   },
+   "history": {
+    "ids": [
+     90081779,
+     90056319,
+     90038680,
+     90074127,
+     90073874
+    ],
+    "ap5": 0.0,
+    "hits": [
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "cbf": {
+    "ids": [
+     90081779,
+     90050383,
+     90056319,
+     90081167,
+     90073903
+    ],
+    "ap5": 0.0,
+    "hits": [
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     false,
+     false
+    ]
+   },
+   "assoc_rules": {
+    "ids": [
+     2400480,
+     240081,
+     6500479,
+     2400467,
+     2400508
+    ],
+    "ap5": 0.52,
+    "hits": [
+     true,
+     true,
+     false,
+     false,
+     true
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   },
+   "als": {
+    "ids": [
+     2400480,
+     240081,
+     6500479,
+     2400467,
+     2400508
+    ],
+    "ap5": 0.52,
+    "hits": [
+     true,
+     true,
+     false,
+     false,
+     true
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     false
+    ]
+   },
+   "ppr": {
+    "ids": [
+     90081779,
+     90056319,
+     2400480,
+     90038680,
+     90074127
+    ],
+    "ap5": 0.06666666666666667,
+    "hits": [
+     false,
+     false,
+     true,
+     false,
+     false
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "hybrid": {
+    "ids": [
+     2400467,
+     400294,
+     6500479,
+     2400480,
+     700389
+    ],
+    "ap5": 0.05,
+    "hits": [
+     false,
+     false,
+     false,
+     true,
+     false
+    ],
+    "seen": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  "test_hybrid": [
+   2400480,
+   240081,
+   2400508,
+   2400467,
+   700389
+  ]
+ }
+}

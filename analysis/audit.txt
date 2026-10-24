@@ -1,0 +1,48 @@
+== 1. temporal separation
+fit: history airings 1583716560..1588550100 < target start 1588550400: True
+val: history airings 1583716560..1592178600 < target start 1592179200: True
+test: history airings 1583716560..1595807100 < target start 1595808000: True
+view log has any airing in weeks 31-42 (test): False
+== 2. individual methods + hybrid on val (with fixed tie/cold-start rule)
+fit: 354576 rows, 281 cand/user, 11s, positives 0.100
+val: 419651 rows, 333 cand/user, 15s, positives 0.100
+popularity   MAP@5=0.6544
+history      MAP@5=0.6055
+cbf          MAP@5=0.3671
+assoc_rules  MAP@5=0.6514
+als          MAP@5=0.4701
+ppr          MAP@5=0.6558
+hybrid       MAP@5=0.7410
+== 3. paired bootstrap over the 1,260 users (1000 resamples, seed 0): hybrid - other
+hybrid - popularity   = +0.0866  95% CI [+0.0723, +0.1005]
+hybrid - history      = +0.1355  95% CI [+0.1236, +0.1474]
+hybrid - cbf          = +0.3739  95% CI [+0.3589, +0.3889]
+hybrid - assoc_rules  = +0.0897  95% CI [+0.0755, +0.1038]
+hybrid - als          = +0.2709  95% CI [+0.2512, +0.2883]
+hybrid - ppr          = +0.0852  95% CI [+0.0745, +0.0951]
+== 4. label-shuffle control: re-ranker fitted on permuted labels must lose its gain
+hybrid with shuffled labels MAP@5 = 0.2332
+== 5. cold-start users get exactly the popularity Top-5 in every method
+popularity True n_cold = 8
+history True n_cold = 8
+cbf True n_cold = 8
+assoc_rules True n_cold = 8
+als True n_cold = 8
+ppr True n_cold = 8
+hybrid True n_cold = 8
+== 6. hand check of AP@5 for one user
+user 8431897575013155337 recs [np.int64(2400480), np.int64(240081), np.int64(5200303), np.int64(6500479), np.int64(1100412)] hits [True, True, True, False, False] |truth| = 25
+AP@5 by hand = sum(P@i * rel_i)/min(|truth|,5) = 0.6  apk() = 0.6
+== 7. LightGBM gain importance of the val-selection re-ranker (top 12)
+ppr_rank         0.502
+ppr              0.112
+chan_air         0.111
+h_n_air          0.041
+als_rank         0.029
+chan_air_rank    0.021
+h_n_wk           0.015
+u_hours          0.015
+i_pop1           0.012
+i_air_ratio      0.012
+i_pop2           0.010
+u_items          0.010

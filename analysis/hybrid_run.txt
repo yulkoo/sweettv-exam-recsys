@@ -1,0 +1,5 @@
+fit: 354576 rows, 281 cand/user, 11s, positives 0.100
+val: 419651 rows, 333 cand/user, 15s, positives 0.100
+test: 470962 rows, 374 cand/user, 21s
+HYBRID val MAP@5 0.74105
+wrote submissions/final_hybrid_lambdarank.csv, total runtime 81 s
