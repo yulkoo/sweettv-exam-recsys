@@ -15,6 +15,15 @@ def week_start(w):
 FOLDS = {
     'fit':   ((11, 18), (19, 24)),   # used only to fit the hybrid's fusion weights
     'fit2':  ((11, 15), (16, 21)),   # second, earlier fitting fold (more training rows for the re-ranker)
+    'fit3':  ((11, 16), (17, 22)),   # extra sliding fitting folds (targets end <= wk 24, before the hold-out)
+    'fit4':  ((11, 17), (18, 23)),
+    'fit5':  ((11, 14), (15, 20)),
+    # same history ends, 3-week targets (experiment: does the label-window length matter?)
+    'w3a':   ((11, 18), (19, 21)), 'w3b': ((11, 15), (16, 18)), 'w3c': ((11, 16), (17, 19)),
+    'w3d':   ((11, 17), (18, 20)), 'w3e': ((11, 14), (15, 17)),
+    # 12-week targets (same length as the Kaggle test window), usable only for the final test model
+    'L1':    ((11, 18), (19, 30)), 'L2': ((11, 16), (17, 28)), 'L3': ((11, 14), (15, 26)),
+    'L4':    ((11, 17), (18, 29)), 'L5': ((11, 15), (16, 27)),
     'val':   ((11, 24), (25, 30)),   # the single documented hold-out for model selection
     'test':  ((11, 30), (31, 42)),   # final Kaggle prediction (no target known)
 }

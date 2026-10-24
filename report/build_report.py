@@ -28,14 +28,25 @@ for l in open(f'{A}/weights_check.txt'):
     p = [x.strip() for x in l.split('|')]
     if p[0] == 'half-life 8 wk':
         best = 'screen-time' in p[1]
-        rows.append(f'<tr{" class=best" if best else ""}><td>History weight: {html.escape(p[1])}{" (used)" if best else ""}</td><td class="n">{p[2].split("= ")[1]}</td></tr>')
-LN = {'top5': 'binary (in official top-5)', 'count_cap30': '# airings with screen time &ge; 0.8 (cap 30)',
-      'log2_count': 'log2(1 + # airings &ge; 0.8)', 'top5_graded': 'top-5 graded by log2 count'}
-for kind, tr, v in re.findall(r'labels=(\S+)\s+train=(\S+)\s+val MAP@5 = ([\d.]+)', open(f'{A}/select_labels.txt').read()):
-    best = kind == 'count_cap30' and tr == 'fit+fit2'
-    rows.append(f'<tr{" class=best" if best else ""}><td>Re-ranker label {LN[kind]}, trained on {tr}{" (final)" if best else ""}</td><td class="n">{v}</td></tr>')
+        rows.append(f'<tr{" class=best" if best else ""}><td>History weight: {html.escape(p[1])}{" (used)" if best else ""}</td><td class="n">{p[2].split("= ")[1]}</td><td class="n">—</td></tr>')
+sf = open(f'{A}/select_final.txt').read()
+def sfv(label):
+    m = re.search(re.escape(label) + r'\s+val ([\d.]+)(?:\s+fit ([\d.]+))?', sf)
+    return m.group(1), m.group(2) or '—'
+SEL = [('Re-ranker: first setting (63 leaves), trained on 2 folds', 'old setting, fit+fit2'),
+       ('… same, trained on 5 folds', 'old setting, 5 folds'),
+       ('… + personal (channel, hour) habit features per programme', 'old setting + own-slot features'),
+       ("… 31 leaves, &ge; 300 rows/leaf", "{'num_leaves': 31, 'min_child_samples': 300}"),
+       ("… rank_xendcg objective", "{'objective': 'rank_xendcg'}"),
+       ('… 31 leaves, &ge; 300 rows/leaf, 5-seed bag (final)', 'num_leaves=31, min_child_samples=300, 5 seeds  (FINAL)'),
+       ('Labels from 3-week windows (val window is 6 weeks)', '3-week labels')]
+for name, key in SEL:
+    v, f2 = sfv(key)
+    rows.append(f'<tr{" class=best" if "final" in name else ""}><td>{name}</td><td class="n">{v}</td><td class="n">{f2}</td></tr>')
+rp = re.findall(r"'rank\+poisson': ([\d.]+)", sf)          # [val, fit]
+rows.append(f'<tr><td>Final + pointwise Poisson LightGBM (rank average)</td><td class="n">{rp[0]}</td><td class="n">{rp[1]}</td></tr>')
 t = t.replace('{{TABLE2}}', '\n'.join(rows))
-RECALL = re.search(r'candidate recall of val truth: ([\d.]+)', open(f'{A}/select_labels.txt').read()).group(1)
+RECALL = re.search(r'candidate recall of val truth: ([\d.]+)', open(f'{A}/select_labels.txt').read()).group(1)   # same candidates
 t = t.replace('{{RECALL}}', f'{float(RECALL):.1%}'.replace('%', '%'))
 sub = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'submissions', 'final_hybrid_lambdarank.csv'))
 t = t.replace('{{EX_ROW0}}', sub.tv_show_id[sub.user_id == 8377619604347126107].iloc[0])

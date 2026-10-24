@@ -1,9 +1,15 @@
-fit2: 454649 rows, 361 cand/user, 11s, positives 0.011
 fit: 471344 rows, 374 cand/user, 12s, positives 0.010
-val: 509398 rows, 404 cand/user, 16s, positives 0.010
+fit2: 454649 rows, 361 cand/user, 9s, positives 0.011
+fit3: 461204 rows, 366 cand/user, 11s, positives 0.011
+fit4: 459850 rows, 365 cand/user, 11s, positives 0.010
+fit5: 453851 rows, 360 cand/user, 9s, positives 0.011
+val: 509398 rows, 404 cand/user, 17s, positives 0.010
 == 1. temporal separation
-fit2: history airings 1583716560..1586735700 < target start 1586736000: True
 fit: history airings 1583716560..1588550100 < target start 1588550400: True
+fit2: history airings 1583716560..1586735700 < target start 1586736000: True
+fit3: history airings 1583716560..1587340500 < target start 1587340800: True
+fit4: history airings 1583716560..1587945300 < target start 1587945600: True
+fit5: history airings 1583716560..1586130900 < target start 1586131200: True
 val: history airings 1583716560..1592178600 < target start 1592179200: True
 test: history airings 1583716560..1595807100 < target start 1595808000: True
 view log has any airing in weeks 31-42 (test): False
@@ -14,16 +20,16 @@ cbf          MAP@5=0.1914
 assoc_rules  MAP@5=0.2005
 als          MAP@5=0.1695
 ppr          MAP@5=0.3142
-hybrid       MAP@5=0.3249
+hybrid       MAP@5=0.3288
 == 3. paired bootstrap over the 1,260 users (1000 resamples, seed 0): hybrid - other
-hybrid - popularity   = +0.1087  95% CI [+0.0980, +0.1195]
-hybrid - history      = +0.0143  95% CI [+0.0089, +0.0196]
-hybrid - cbf          = +0.1335  95% CI [+0.1235, +0.1428]
-hybrid - assoc_rules  = +0.1245  95% CI [+0.1133, +0.1359]
-hybrid - als          = +0.1554  95% CI [+0.1427, +0.1678]
-hybrid - ppr          = +0.0108  95% CI [+0.0058, +0.0159]
+hybrid - popularity   = +0.1127  95% CI [+0.1023, +0.1233]
+hybrid - history      = +0.0182  95% CI [+0.0131, +0.0233]
+hybrid - cbf          = +0.1374  95% CI [+0.1280, +0.1471]
+hybrid - assoc_rules  = +0.1284  95% CI [+0.1177, +0.1392]
+hybrid - als          = +0.1593  95% CI [+0.1466, +0.1714]
+hybrid - ppr          = +0.0147  95% CI [+0.0098, +0.0194]
 == 4. label-shuffle control: re-ranker fitted on permuted labels must lose its gain
-hybrid with shuffled labels MAP@5 = 0.0218
+hybrid with shuffled labels MAP@5 = 0.0304
 == 5. cold-start users get exactly the popularity Top-5 in every method
 popularity True n_cold = 8
 history True n_cold = 8
@@ -33,18 +39,18 @@ als True n_cold = 8
 ppr True n_cold = 8
 hybrid True n_cold = 8
 == 6. hand check of AP@5 for one user
-user 8377619604347126107 recs [np.int64(2400480), np.int64(240081), np.int64(2400508), np.int64(20088), np.int64(200338)] hits [True, True, True, True, False] |truth| = 5
+user 8377619604347126107 recs [np.int64(2400480), np.int64(240081), np.int64(2400508), np.int64(20088), np.int64(12002955)] hits [True, True, True, True, False] |truth| = 5
 AP@5 by hand = sum(P@i * rel_i)/min(|truth|,5) = 0.8  apk() = 0.8
-== 7. LightGBM gain importance of the val-selection re-ranker (top 12)
-ppr_rank          0.477
-ppr               0.228
-slot_nair         0.035
+== 7. LightGBM gain importance of the val-selection re-ranker (5 seeds) (top 12)
+ppr_rank          0.527
+ppr               0.205
+slot_nair         0.048
 chan_nair_rank    0.029
-chan_nair         0.023
-i_n_air_wk        0.021
-i_pop80_1         0.019
-exp80_rank        0.012
-i_mean_frac       0.011
+chan_nair         0.028
+i_pop80_1         0.022
+i_n_air_wk        0.014
+exp80_rank        0.011
+popularity        0.011
 slot_nair_rank    0.010
-u_hours           0.009
-cbf               0.008
+history_rank      0.010
+i_mean_frac       0.010

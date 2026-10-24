@@ -1,0 +1,34 @@
+fit: 471344 rows, 374 cand/user, 13s, positives 0.010
+fit2: 454649 rows, 361 cand/user, 10s, positives 0.011
+fit3: 461204 rows, 366 cand/user, 11s, positives 0.011
+fit4: 459850 rows, 365 cand/user, 11s, positives 0.010
+fit5: 453851 rows, 360 cand/user, 9s, positives 0.011
+w3a: 453570 rows, 360 cand/user, 10s, positives 0.009
+w3b: 431939 rows, 343 cand/user, 7s, positives 0.011
+w3c: 443221 rows, 352 cand/user, 9s, positives 0.010
+w3d: 443954 rows, 352 cand/user, 9s, positives 0.010
+w3e: 430674 rows, 342 cand/user, 7s, positives 0.011
+val: 509398 rows, 404 cand/user, 16s, positives 0.010
+== A. first-round re-ranker, 2 vs 5 training folds (val only)
+old setting, fit+fit2                                      val 0.3249
+old setting, 5 folds                                       val 0.3268   fit 0.3434
+== B. personal (channel x hour) habit features for each programme
+old setting + own-slot features                            val 0.3235   fit 0.3439
+== C. LightGBM LambdaRank settings (5 folds, seed 42)
+{'num_leaves': 15}                                         val 0.3295   fit 0.3432
+{'num_leaves': 31, 'min_child_samples': 300}               val 0.3285   fit 0.3446
+{'num_leaves': 15, 'n_estimators': 1000}                   val 0.3289   fit 0.3448
+{'n_estimators': 250}                                      val 0.3288   fit 0.3446
+{'lambdarank_truncation_level': 10}                        val 0.3234   fit 0.3440
+{'objective': 'rank_xendcg'}                               val 0.2939   fit 0.3209
+{'num_leaves': 31, 'reg_lambda': 10, 'colsample_bytree': 0.5} val 0.3278   fit 0.3418
+{'learning_rate': 0.01, 'n_estimators': 1500, 'num_leaves': 31} val 0.3284   fit 0.3444
+== D. seed bag (5 seeds)
+num_leaves=31, min_child_samples=300, 5 seeds  (FINAL)     val 0.3288   fit 0.3464
+== E. label-window length (val target = 6 weeks; same history ends, final setting)
+6-week labels (matches val window)                         val 0.3285
+3-week labels                                              val 0.3282
+6-week + 3-week labels mixed                               val 0.3267
+== F. ensemble of LambdaRank with pointwise LightGBM models (per-user rank average)
+val {'rank': 0.3288, 'poisson': 0.322, 'binary': 0.3245, 'rank+poisson': 0.3294, 'rank+binary': 0.3281, 'all three': 0.3292}
+fit {'rank': 0.3464, 'poisson': 0.3377, 'binary': 0.344, 'rank+poisson': 0.3416, 'rank+binary': 0.3452, 'all three': 0.3453}

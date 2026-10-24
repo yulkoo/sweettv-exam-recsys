@@ -1,6 +1,9 @@
-fit2: 454649 rows, 361 cand/user, 9s, positives 0.011
 fit: 471344 rows, 374 cand/user, 12s, positives 0.010
-val: 509398 rows, 404 cand/user, 16s, positives 0.010
+fit2: 454649 rows, 361 cand/user, 9s, positives 0.011
+fit3: 461204 rows, 366 cand/user, 10s, positives 0.011
+fit4: 459850 rows, 365 cand/user, 11s, positives 0.010
+fit5: 453851 rows, 360 cand/user, 8s, positives 0.011
+val: 509398 rows, 404 cand/user, 17s, positives 0.010
 VAL (history wk11-24 -> wk25-30); terciles of history hours: {'light': {'min': 0.0, 'max': 128.7}, 'medium': {'min': 129.0, 'max': 254.1}, 'heavy': {'min': 254.3, 'max': 1596.4}}
      method  light  medium  heavy  share_already_watched hits_on_new_programmes  distinct_ids_in_top5
  popularity 0.1436  0.2078 0.2971                  0.839                49/1695                     5
@@ -9,10 +12,11 @@ VAL (history wk11-24 -> wk25-30); terciles of history hours: {'light': {'min': 0
 assoc_rules 0.1333  0.1978 0.2703                  0.863                38/1542                    27
         als 0.1543  0.2020 0.1523                  0.896                34/1397                    91
         ppr 0.1997  0.3179 0.4249                  0.990                 5/2272                   291
-     hybrid 0.2073  0.3253 0.4421                  0.946                15/2345                   157
+     hybrid 0.2092  0.3314 0.4459                  0.957                22/2370                   141
 
 TEST Top-5 (weeks 31-42): share already watched in wk11-30, distinct ids, category mix
-hybrid       watched-before=0.963 distinct=135 {'Инфо': 0.52, 'Детям': 0.21, 'Развлечения': 0.12, 'Сериалы': 0.09}
+hybrid       watched-before=0.970 distinct=121 {'Инфо': 0.53, 'Детям': 0.22, 'Развлечения': 0.12, 'Сериалы': 0.08}
+hybrid_6w    watched-before=0.971 distinct=135 {'Инфо': 0.54, 'Детям': 0.21, 'Развлечения': 0.11, 'Сериалы': 0.08}
 popularity   watched-before=0.873 distinct=5 {'Инфо': 0.8, 'Развлечения': 0.2}
 history      watched-before=0.998 distinct=377 {'Инфо': 0.4, 'Детям': 0.19, 'Развлечения': 0.16, 'Сериалы': 0.13}
 cbf          watched-before=0.669 distinct=235 {'Инфо': 0.57, 'Детям': 0.21, 'Развлечения': 0.1, 'Сериалы': 0.06}

@@ -3,7 +3,9 @@
 Kaggle: [sweettv-tv-program-recommender](https://www.kaggle.com/competitions/sweettv-tv-program-recommender), metric MAP@5.
 
 **Final submission file:** [`submissions/final_hybrid_lambdarank.csv`](submissions/final_hybrid_lambdarank.csv)
-Other files in `submissions/`: `popularity_baseline.csv` (required baseline, same pipeline) and `hybrid_gbm.csv` (an early v1 built for a wrong, looser target definition before the official rule was found; kept as a record, not the final).
+**Kaggle (late submission): private MAP@5 = 0.45060, public 0.45332.**
+
+Other files in `submissions/`: `alt_hybrid_6week_labels.csv` (same re-ranker trained on 6-week instead of 12-week labels; private 0.44938, public 0.45502), `popularity_baseline.csv` (required baseline, same pipeline) and `hybrid_gbm.csv` (an early v1 built for a wrong, looser target definition before the official rule was found; kept as a record, not the final).
 
 (final = hybrid: candidates from popularity / history / CBF / association rules / ALS / personalised PageRank, re-ranked by LightGBM LambdaRank).
 
@@ -21,10 +23,10 @@ checked against a brute-force recomputation in `analysis/check_truth_bruteforce.
 | Association rules (user-week baskets, confidence, lift > 1) | 0.2005 |
 | Matrix factorisation (implicit ALS, 8 factors) | 0.1695 |
 | Personalised PageRank (item co-view graph, restart 0.3) | 0.3142 |
-| **Hybrid: candidates + LightGBM LambdaRank re-ranker** | **0.3249** |
+| **Hybrid: candidates + LightGBM LambdaRank re-ranker (5-seed bag)** | **0.3288** |
 
 Raw outputs: `analysis/audit.txt` (table above, bootstrap CIs, label-shuffle control, cold-start and hand AP checks),
-`analysis/segments.txt`, `analysis/select_labels.txt`, `analysis/weights_check.txt`, `analysis/als_grid.txt`,
+`analysis/segments.txt`, `analysis/select_labels.txt`, `analysis/select_final.txt` (second selection round, two hold-outs), `analysis/weights_check.txt`, `analysis/als_grid.txt`,
 `analysis/examples.txt`, `analysis/check_truth_bruteforce.txt`, `analysis/hybrid_run.txt`.
 
 ## Reproduce
@@ -35,17 +37,18 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 cd src
 ../.venv/bin/python build_interactions.py   # view log x schedule join -> data/user_airing.parquet (~20 s)
 ../.venv/bin/python evaluate.py val         # each method individually on the hold-out
-../.venv/bin/python hybrid.py               # hybrid val score + submissions/final_hybrid_lambdarank.csv (~140 s)
+../.venv/bin/python hybrid.py               # hybrid val score + both submission files (~20 min, peak RAM ~7.4 GB)
 ../.venv/bin/python audit.py                # leakage / bootstrap / label-shuffle / cold-start / hand AP checks
 ../.venv/bin/python check_truth_bruteforce.py   # target rule recomputed from raw CSVs for 5 users
 ../.venv/bin/python weights_check.py        # interaction-weight choice
-../.venv/bin/python select_labels.py        # re-ranker label / training-fold choice
+../.venv/bin/python select_labels.py        # re-ranker label choice (first round)
+../.venv/bin/python select_final.py         # re-ranker folds / settings / features / ensembles (second round, ~45 min)
 ../.venv/bin/python segments.py             # MAP by activity tercile, familiarity of lists
 ../.venv/bin/python examples.py             # two-user Top-5 tables
 cd ../report && ../.venv/bin/python build_report.py   # report.html from analysis/ outputs
 ```
 
-Environment: macOS 26.6.2, Apple M2 (8 cores, 8 GB), Python 3.12.13, versions in `requirements.txt`, `OPENBLAS_NUM_THREADS=1`. Seeds: 42 (ALS, LightGBM), 0 (bootstrap).
+Environment: macOS 26.6.2, Apple M2 (8 cores, 8 GB), Python 3.12.13, versions in `requirements.txt`, `OPENBLAS_NUM_THREADS=1`. Seeds: 42 (ALS), 42-46 (LightGBM bag), 0 (bootstrap).
 
 ## Protocol summary
 
@@ -54,6 +57,7 @@ Environment: macOS 26.6.2, Apple M2 (8 cores, 8 GB), Python 3.12.13, versions in
 * **`tv_show_id = 0`:** dropped as items (43.6 % of overlapped seconds); never recommended.
 * **Candidate pool:** labelled programmes airing in the target window (schedule only); re-recommending watched programmes is allowed, identically for all methods.
 * **Cold start:** users without any watched labelled airing in history get the popularity Top-5 in every method; ties/short lists are filled in popularity order.
+* **Re-ranker training:** five 6-week folds (history 11-e -> e+1..e+6, e = 14..18) for validation; the final test model is trained on five 12-week folds (11-e -> e+1..e+12, e = 14..18; targets end <= wk 30), matching the 12-week Kaggle window.
 * **No future views:** the log ends in week 30; the test-week schedule is used only for "what airs where and when".
 
 src/ files `explore.py` and `check_shift.py` are the exploratory scripts used before the join.

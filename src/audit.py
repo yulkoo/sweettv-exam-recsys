@@ -30,9 +30,9 @@ for m in H.SCORERS:
 
 print('== 4. label-shuffle control: re-ranker fitted on permuted labels must lose its gain')
 rng1 = np.random.default_rng(1)
-Xs = [d[0].assign(cnt=rng1.permutation(d[0].cnt.values)) for d in (data['fit'], data['fit2'])]
-clf_s, _ = H.fit(Xs)
-print('hybrid with shuffled labels MAP@5 =', round(mapk(fv, H.predict(clf_s, feats, data['val'][0], fv, fb)), 4))
+Xs = [data[n][0].assign(cnt=rng1.permutation(data[n][0].cnt.values)) for n in H.FIT6]
+clf_s = [H.fit(Xs)]
+print('hybrid with shuffled labels MAP@5 =', round(mapk(fv, H.predict(clf_s, None, data['val'][0], fv, fb)), 4))
 
 print('== 5. cold-start users get exactly the popularity Top-5 in every method')
 pop5 = fb[:5]
@@ -48,6 +48,6 @@ prec = [sum(hits[:i + 1]) / (i + 1) for i in range(5)]
 print('AP@5 by hand = sum(P@i * rel_i)/min(|truth|,5) =', sum(p for p, h in zip(prec, hits) if h) / min(len(t), 5),
       ' apk() =', apk(t, r))
 
-print('== 7. LightGBM gain importance of the val-selection re-ranker (top 12)')
-imp = pd.Series(clf.booster_.feature_importance('gain'), feats)
+print('== 7. LightGBM gain importance of the val-selection re-ranker (5 seeds) (top 12)')
+imp = sum(pd.Series(m.booster_.feature_importance('gain'), f) for m, f in clf)   # summed over the seed bag
 print((imp / imp.sum()).sort_values(ascending=False).head(12).round(3).to_string())
