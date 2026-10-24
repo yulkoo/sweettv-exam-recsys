@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>sweet.tv Exam Report</title>
+<style>
+  @page { size: A4; margin: 15mm 13mm 15mm 13mm; }
+  :root { --ink: #111; --rule: #999; --todo: #fff3bf; }
+  body { background: #fff; color: var(--ink); font-family: "Times New Roman", Times, serif; font-size: 9.5pt; line-height: 1.27; margin: 0; }
+  header { text-align: center; margin-bottom: 7px; }
+  h1 { font-size: 16.5pt; font-weight: normal; margin: 0 0 6px; line-height: 1.15; }
+  .meta { font-size: 9.4pt; line-height: 1.35; }
+  .cols { column-count: 2; column-gap: 6mm; text-align: justify; hyphens: auto; }
+  .span { column-span: all; margin: 4px 0 6px; }
+  h2 { font-size: 9.5pt; font-variant: small-caps; text-align: center; margin: 8px 0 3px; letter-spacing: .02em; break-after: avoid; }
+  h3 { font-size: 9.5pt; font-style: italic; font-weight: normal; margin: 5px 0 2px; break-after: avoid; }
+  p { margin: 0 0 4px; text-indent: 1em; }
+  p.ni, .abstract p { text-indent: 0; }
+  .abstract { font-weight: bold; font-size: 9pt; }
+  ul, ol { margin: 2px 0 4px; padding-left: 13px; }
+  li { margin-bottom: 1px; }
+  table { border-collapse: collapse; width: 100%; font-size: 8pt; margin: 3px 0 2px; break-inside: avoid; }
+  th, td { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 1.4px 3px; text-align: left; vertical-align: top; }
+  th { font-weight: bold; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  tr.best td { font-weight: bold; }
+  .ex td, .ex th { font-size: 7.4pt; padding: 1px 2px; }
+  .ex td.hit { font-weight: bold; }
+  .cap { break-after: avoid; font-size: 8pt; text-align: center; margin: 1px 0 5px; font-variant: small-caps; }
+  code { font-family: Menlo, Consolas, monospace; font-size: 7.6pt; }
+  pre { font-family: Menlo, Consolas, monospace; font-size: 7pt; background: #f4f4f4; padding: 3px 4px; margin: 2px 0 4px; white-space: pre-wrap; break-inside: avoid; line-height: 1.2; }
+  .refs { font-size: 8.1pt; }
+  .refs p { text-indent: -1.6em; padding-left: 1.6em; margin-bottom: 2px; }
+  .todo { background: var(--todo); padding: 3px 4px; border-left: 3px solid #e0a800; font-size: 8.6pt; break-inside: avoid; margin: 3px 0; }
+  .todo p { text-indent: 0; }
+  a { color: inherit; }
+  img.shot { width: 100%; border: 1px solid #bbb; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Schedule-Aware Hybrid Recommendation for sweet.tv:<br>Re-Ranking Popularity, Association Rules, ALS and Personalized PageRank</h1>
+  <div class="meta">
+    Student: Yulia Filatkina &nbsp;&nbsp; Team: Individual (group AVITO)<br>
+    Email: yuafilatkina@edu.hse.ru &nbsp;&nbsp; Date: 2026-10-25<br>
+    Assignment: Final Exam Quiz — TV Program Recommendation on sweet.tv (Kaggle <code>sweettv-tv-program-recommender</code>)<br>
+    Code &amp; final submission file: <a href="https://github.com/yulkoo/sweettv-exam-recsys">https://github.com/yulkoo/sweettv-exam-recsys</a>
+  </div>
+</header>
+
+<div class="cols">
+<div class="abstract"><p><i>Abstract</i>—We predict, for 1,260 sweet.tv users, the five TV programmes they will watch in weeks 31–42 from a view log (weeks 11–30) that carries no programme ids and must be joined to a broadcast schedule in which only ~11% of rows are labelled. We join views to airings by channel and interval overlap, implement content-based filtering, association rules, implicit ALS and personalized PageRank, and combine them with a popularity baseline by candidate generation and LightGBM LambdaRank re-ranking that also sees which programmes air on the user's habitual channels in the target weeks. On a temporal hold-out (weeks 25–30) the hybrid reaches MAP@5 = 0.7410 against 0.6544 for popularity and 0.6558 for the best single method (PPR). The gain comes mostly from knowing <i>where</i> a user watches and <i>what</i> will air there, not from discovering new programmes.</p></div>
+<p class="ni"><b><i>Index Terms</i></b>—implicit feedback, association rules, matrix factorization, personalized PageRank, learning to rank.</p>
+
+<h2>I. Introduction</h2>
+<p><b>Problem.</b> The competition supplies a view log (<code>user_id, vsetv_id, start_time, stop_time, duraton</code>), three schedule files and a template with five programme ids per test user; the metric is MAP@5. A view says only <i>which channel</i> was on, so user–programme interactions must first be constructed by a join, and every model must extrapolate forward in time.</p>
+<p><b>Motivation.</b> On linear TV the user cannot pull an arbitrary item: a programme is watchable only when it airs, on a channel the user tends to switch to. A recommender that ignores the grid wastes slots on programmes that will not air or air at times the user never watches.</p>
+<p><b>Example.</b> Test user <code>8377619604347126107</code> → final output <code>2400480 2400508 6500479 240081 2400467</code> (ТСН, Сегодня, Мир наизнанку, Факты, Викна-Новости — mostly daily news blocks on channels this user watches).</p>
+<p><b>Contributions.</b> (1) A documented join and validation protocol and an individual evaluation of four course methods plus popularity on one hold-out; (2) a schedule-aware re-ranking hybrid that beats every single method in every activity tercile, with leakage, bootstrap and label-shuffle checks.</p>
+
+<h2>II. Related Work</h2>
+<p class="ni">Implicit ALS with confidence weights follows Hu et al. [1]; association rules (support, confidence, lift) follow Agrawal et al. [2]; content-based profiles from item attributes follow Pazzani and Billsus [3]; personalized PageRank as a random walk with restart to a preference vector follows Haveliwala [4] and, for item graphs at scale, Pixie [5]; the re-ranker is LightGBM [6] with its LambdaRank objective.</p>
+<p class="ni"><i>Alternatives considered.</i> User-/item-based kNN CF (lecture 3): subsumed by the co-view graph that PPR walks on. Two-tower retrieval (lecture 5): no side features of users and only 4,895 users, so ALS already covers the latent-factor family. Hand-tuned weighted score/rank fusion: not used, because its weights would have to be tuned on the hold-out; the re-ranker learns them on an earlier fold instead.</p>
+
+<h2>III. Method</h2>
+<h3>A. Join, "watched" rule and unlabelled airtime</h3>
+<p>A view is matched to every airing on the same channel (<code>vsetv_id = channel_id</code>) whose interval <code>[start_time, start_time+duration)</code> overlaps the view interval; several fragments of the same user–airing are summed and capped at the airing length. Shifts of −3…+3 h between log and schedule were tested; 0 h maximised the share of views that start within 2 min of an airing start, so no shift is applied. 92.8% of views (300k sample) overlap some airing. <b>Unlabelled airings (<code>tv_show_id = 0</code>) are dropped as items</b> — they account for 43.6% of all overlapped seconds — and are never recommended; labelled overlaps give 3,014,129 user–airing pairs.</p>
+<p><b>Watched</b> = overlap ≥ min(300 s, 50% of the airing). The observed distribution motivates it: airings are long (median 5,700 s, 10th pct 1,200 s), while overlaps are short (median 712 s, 10th pct 89 s), so a pure fraction-of-duration cut would discard most real viewing of films and talk shows, and a pure absolute cut would penalise 10-min news bulletins (1.6% of user–airing pairs involve airings &lt;600 s). 69.4% of pairs pass (2,092,698). Because the organisers' target definition is unknown, §IV-D re-scores all methods under three other definitions.</p>
+<h3>B. Protocol shared by all methods</h3>
+<ul>
+<li><b>Split</b> (temporal, by airing start week): <i>val</i> = history wk 11–24 → target wk 25–30 (the hold-out for every number in Table I); <i>fit</i> = history wk 11–18 → target wk 19–24 (used only to fit the hybrid's re-ranker); <i>test</i> = history wk 11–30 → Kaggle wk 31–42.</li>
+<li><b>Candidate pool</b>: labelled programmes that air in the target window according to the schedule (5,013 in val). Re-recommending already-watched programmes is <b>allowed</b> for every method (TV is habitual; a news show is "re-watched" daily).</li>
+<li><b>Cold start</b>: a user with no watched labelled airing in the history window (8 in val, 2 in test) gets the popularity Top-5 in <b>every</b> method; ties and lists shorter than five are filled in popularity order.</li>
+<li><b>Five ids</b>: each method produces a score per (user, candidate); its Top-5 is the arg-sort of that score, ties broken by popularity. Scores are never compared across methods; the hybrid consumes them as features.</li>
+<li><b>MAP@5</b> = mean over all 1,260 users of Σ P@k·rel(k) / min(|truth|, 5); users without target views count as 0.</li>
+</ul>
+<h3>C. Methods</h3>
+<ul>
+<li><b>Popularity</b> (required baseline): distinct viewers per programme in the last 4 history weeks.</li>
+<li><b>History</b> (helper, not counted): the user's own watched hours per programme, decayed with a 4-week half-life.</li>
+<li><b>CBF</b>: TF-IDF item vectors over category, three genres, directors, first 10 actors, production decade and channel; user profile = watch-hour-weighted sum of watched items; cosine score.</li>
+<li><b>Association rules</b>: transactions = user-week baskets of watched programmes; rules A→B with support ≥ 20 baskets, confidence ≥ 0.05, lift &gt; 1; antecedents = programmes the user watched in the last 4 history weeks; score = Σ confidence.</li>
+<li><b>ALS</b> (implicit [1]): all 4.9k users × history programmes, confidence log(1 + 10·decayed hours), 64 factors, λ = 0.05, 20 iterations.</li>
+<li><b>PPR</b>: co-view graph over history programmes, edge = cosine of log-hour user vectors, top-50 neighbours, symmetrised, row-normalised; restart probability 0.3 to the user's decayed watch-hour distribution, 20 power iterations.</li>
+<li><b>Hybrid</b>: candidates = union of each method's Top-100 plus every history programme that airs again (~333 per user). Features: each method's score and within-user rank; history counts/recency; item popularity over 1/2/4/all weeks; target-window airtime per week; and two schedule-context features — <i>chan_air</i> = Σ<sub>c</sub> (user's share of watch time on channel c) × (hours the programme airs on c in the target window) and <i>hour_air</i>, the same over 168 hour-of-week slots. LightGBM LambdaRank (one query per user) is fitted on the <i>fit</i> fold and scored on <i>val</i>; for Kaggle the same recipe is refitted on the <i>val</i> fold and applied to <i>test</i>.</li>
+</ul>
+<h3>D. Tools and configuration</h3>
+<p class="ni">Python 3.12.13; pandas 3.1.0, NumPy 2.5.4, SciPy 1.18.1, scikit-learn 1.9.1 (TF-IDF, HistGradientBoosting), implicit 0.7.3 (ALS), LightGBM 4.7.0 (500 trees, lr 0.03, 63 leaves, min 100 rows/leaf, 0.8 row/column sampling, truncation 20). Seeds: 42 (ALS, LightGBM), 0 (bootstrap). Apple M2, 8 GB, macOS 26.6.2. Runtime: join 21.5 s; single methods 0.2–4.2 s each on val; full hybrid script (three folds, all methods, two fits, submission) 81 s.</p>
+<p class="ni"><i>Key design decisions.</i> (i) Using the target-week schedule as a feature is permitted by §5 of the task ("which programme airs on which channel at which time") and is the main source of gain; it never touches target-week views (the log ends in week 30). (ii) The re-ranker is trained on an earlier fold, so the hold-out is never used for fitting. (iii) The final model is refitted on the most recent fold only, because adding an older fold did not help on val (Table II).</p>
+
+<h2>IV. Experiments</h2>
+<h3>A. Results on the hold-out</h3>
+<table>
+<tr><th>Method (val: wk 11–24 → 25–30)</th><th class="n">MAP@5</th><th class="n">light</th><th class="n">medium</th><th class="n">heavy</th><th class="n">seen</th></tr>
+<tr><td>Popularity (baseline)</td><td class="n">0.6544</td><td class="n">0.4625</td><td class="n">0.6746</td><td class="n">0.8261</td><td class="n">0.875</td></tr>
+<tr><td>Personal history (helper)</td><td class="n">0.6055</td><td class="n">0.3742</td><td class="n">0.6486</td><td class="n">0.7938</td><td class="n">0.991</td></tr>
+<tr><td>Content-based filtering</td><td class="n">0.3671</td><td class="n">0.2281</td><td class="n">0.3822</td><td class="n">0.4910</td><td class="n">0.608</td></tr>
+<tr><td>Association rules</td><td class="n">0.6514</td><td class="n">0.4554</td><td class="n">0.6754</td><td class="n">0.8234</td><td class="n">0.869</td></tr>
+<tr><td>Matrix factorization (ALS)</td><td class="n">0.4701</td><td class="n">0.4592</td><td class="n">0.5436</td><td class="n">0.4076</td><td class="n">0.960</td></tr>
+<tr><td>Personalized PageRank</td><td class="n">0.6558</td><td class="n">0.4235</td><td class="n">0.7061</td><td class="n">0.8378</td><td class="n">0.990</td></tr>
+<tr class="best"><td>Hybrid: candidates + LambdaRank</td><td class="n">0.7410</td><td class="n">0.5419</td><td class="n">0.7840</td><td class="n">0.8972</td><td class="n">0.967</td></tr>
+</table>
+<div class="cap">Table I. MAP@5 on the hold-out, overall and by tercile of history watch hours (light ≤128.7 h, heavy ≥254.3 h); "seen" = share of Top-5 slots already watched in history.</div>
+<p><b>Comparison vs baseline.</b> Popularity is a strong reference (0.6544): five daily news programmes are watched by most users. PPR (0.6558) and association rules (0.6514) only tie with it; ALS and CBF are well below. The hybrid adds +0.0866 MAP@5 over popularity (paired bootstrap over users, 1,000 resamples: 95% CI [+0.0723, +0.1005]) and +0.0852 over PPR (CI [+0.0745, +0.0951]), and it is the best method in all three activity terciles.</p>
+<table>
+<tr><th>Re-ranker variant (all scored on val)</th><th class="n">MAP@5</th></tr>
+<tr><td>HistGradientBoosting, pointwise, fitted on fit</td><td class="n">0.7366</td></tr>
+<tr><td>HistGradientBoosting, pointwise, fitted on fitted on fit + fit2</td><td class="n">0.7111</td></tr>
+<tr class="best"><td>LightGBM LambdaRank, fitted on fit (final)</td><td class="n">0.741</td></tr>
+<tr><td>LightGBM LambdaRank, fitted on fitted on fit + fit2</td><td class="n">0.7402</td></tr>
+</table>
+<div class="cap">Table II. Hybrid selection; fit2 = history wk 11–15 → target wk 16–21.</div>
+<h3>B. Kaggle result of the designated final submission</h3>
+<div class="todo"><p><b>[TO FILL: screenshot of the Kaggle Submissions page showing the private (and public) score of <code>final_hybrid_lambdarank.csv</code>, plus the two numbers in text.]</b></p></div>
+<h3>C. Verification</h3>
+<ul>
+<li><b>Temporal separation</b>: in every fold the last history airing starts before the first target-week second; the log contains no airing in weeks 31–42 (<code>analysis/audit.txt</code>).</li>
+<li><b>Label-shuffle control</b>: the same re-ranker fitted on permuted labels scores 0.2332 on val — the gain is learned, not leaked.</li>
+<li><b>Hand-checked AP@5</b>: user <code>8431897575013155337</code>, hits at ranks 1–3 of 5, |truth| = 25 → (1+1+1)/5 = 0.6 = <code>apk()</code>.</li>
+<li><b>Cold start</b>: all 8 cold val users receive exactly the popularity Top-5 in all seven rows of Table I.</li>
+<li><b>Submission file</b>: 1,260 rows, same user order and header as the template, five distinct non-zero ids per row.</li>
+</ul>
+<h3>D. Sensitivity to the "watched" definition</h3>
+<table>
+<tr><th>Target definition</th><th class="n">hybrid</th><th class="n">pop</th><th class="n">AR</th><th class="n">ALS</th><th class="n">PPR</th><th class="n">CBF</th></tr>
+<tr><td>main: &gt;=min(300s,50%)</td><td class="n">0.7410</td><td class="n">0.6544</td><td class="n">0.6514</td><td class="n">0.4701</td><td class="n">0.6558</td><td class="n">0.3671</td></tr>
+<tr><td>any overlap &gt;=60s</td><td class="n">0.7924</td><td class="n">0.7340</td><td class="n">0.7279</td><td class="n">0.5407</td><td class="n">0.6960</td><td class="n">0.4069</td></tr>
+<tr><td>&gt;=50% of airing</td><td class="n">0.5573</td><td class="n">0.4647</td><td class="n">0.4673</td><td class="n">0.2779</td><td class="n">0.4771</td><td class="n">0.2532</td></tr>
+<tr><td>&gt;=15 min</td><td class="n">0.6490</td><td class="n">0.5431</td><td class="n">0.5427</td><td class="n">0.3656</td><td class="n">0.5925</td><td class="n">0.3243</td></tr>
+</table>
+<div class="cap">Table III. Val MAP@5 under alternative target thresholds (models unchanged).</div>
+<p>The ordering hybrid &gt; {PPR, AR, popularity} &gt; ALS &gt; CBF holds under all four definitions, so the choice of final strategy does not hinge on our guess of the organisers' threshold.</p>
+
+<h2>V. Recommendation Examples and Strategy Analysis</h2>
+<p>Two test users were chosen deterministically from the val fold: a <b>heavy viewer</b> (95th percentile of history hours) and a <b>light viewer</b> (10th percentile), both with target views, so each method's Top-5 can be compared with what they actually watched in weeks 25–30. Bold = watched in wk 25–30; "new" = not watched in history.</p>
+</div>
+<div class="span">
+<table class="ex"><tr><th style="width:13%">Heavy viewer <code>4644788228960559738</code><br>573.2 h, 441 progr. in wk 11–24; 96 in wk 25–30</th><th>#1</th><th>#2</th><th>#3</th><th>#4</th><th>#5</th><th class="n">AP@5</th></tr>
+<tr><td><i>History top-5 by hours</i></td><td>2400480<br>ТСН (Инфо)</td><td>12001682<br>М/с &#x27;Губка Боб Квадратные Штан (Детям)</td><td>240081<br>Факты (Инфо)</td><td>2400508<br>Сегодня (Инфо)</td><td>2400467<br>Викна-Новости (Инфо)</td><td></td></tr>
+<tr><td>Popularity (baseline)</td><td class=hit>2400480<br>ТСН (Инфо)</td><td class=hit>240081<br>Факты (Инфо)</td><td>6500479<br>Мир наизнанку (Познавательное)</td><td>2400467<br>Викна-Новости (Инфо)</td><td class=hit>2400508<br>Сегодня (Инфо)</td><td class="n">0.52</td></tr>
+<tr><td>Personal history (helper)</td><td class=hit>2400480<br>ТСН (Инфо)</td><td class=hit>12001682<br>М/с &#x27;Губка Боб Квадратные Штан (Детям)</td><td class=hit>10002893<br>Т/с &#x27;Когда мы дома (Сериалы)</td><td class=hit>2400508<br>Сегодня (Инфо)</td><td class=hit>240081<br>Факты (Инфо)</td><td class="n">1.00</td></tr>
+<tr><td>Content-based filtering</td><td>5900347<br>Деньги (Инфо)</td><td>5900319<br>Абзац! (Инфо) <i>new</i></td><td class=hit>500346<br>Право на власть (Развлечения)</td><td class=hit>2400480<br>ТСН (Инфо)</td><td>2400467<br>Викна-Новости (Инфо)</td><td class="n">0.17</td></tr>
+<tr><td>Association rules</td><td class=hit>2400480<br>ТСН (Инфо)</td><td class=hit>240081<br>Факты (Инфо)</td><td>6500479<br>Мир наизнанку (Познавательное)</td><td>2400467<br>Викна-Новости (Инфо)</td><td class=hit>2400508<br>Сегодня (Инфо)</td><td class="n">0.52</td></tr>
+<tr><td>Matrix factorization (ALS)</td><td>90073872<br>Х/ф &#x27;Первый мститель (Фильмы)</td><td>90080832<br>Х/ф &#x27;Безбашенные (Фильмы)</td><td>400361<br>МастерШеф (Познавательное)</td><td>90073713<br>Х/ф &#x27;Воин (Фильмы) <i>new</i></td><td class=hit>12001732<br>М/с &#x27;Пингвины из &#x27;Мадагаскара (Детям)</td><td class="n">0.04</td></tr>
+<tr><td>Personalized PageRank</td><td class=hit>2400480<br>ТСН (Инфо)</td><td class=hit>240081<br>Факты (Инфо)</td><td class=hit>12001682<br>М/с &#x27;Губка Боб Квадратные Штан (Детям)</td><td class=hit>2400508<br>Сегодня (Инфо)</td><td>2400467<br>Викна-Новости (Инфо)</td><td class="n">0.80</td></tr>
+<tr><td>Hybrid: candidates + LambdaRank</td><td class=hit>2400480<br>ТСН (Инфо)</td><td class=hit>240081<br>Факты (Инфо)</td><td class=hit>2400508<br>Сегодня (Инфо)</td><td class=hit>12001682<br>М/с &#x27;Губка Боб Квадратные Штан (Детям)</td><td>2400467<br>Викна-Новости (Инфо)</td><td class="n">0.80</td></tr>
+<tr><td><i>Final hybrid, test wk 31–42</i></td><td>2400480<br>ТСН (Инфо)</td><td>240081<br>Факты (Инфо)</td><td>12001682<br>М/с &#x27;Губка Боб Квадратные Штан (Детям)</td><td>12001734<br>М/с &#x27;Волшебные покровители (Детям)</td><td>2400508<br>Сегодня (Инфо)</td><td>—</td></tr>
+</table>
+<table class="ex"><tr><th style="width:13%">Light viewer <code>17112186088201306492</code><br>57.8 h, 98 progr. in wk 11–24; 46 in wk 25–30</th><th>#1</th><th>#2</th><th>#3</th><th>#4</th><th>#5</th><th class="n">AP@5</th></tr>
+<tr><td><i>History top-5 by hours</i></td><td>400357<br>Холостяк&#x27;, 10 сезон, 7 эп., 1  (Развлечения)</td><td>90081779<br>Х/ф &#x27;Быть Астрид Линдгрен (Фильмы)</td><td>90056319<br>Х/ф &#x27;Гарри Поттер и тайная ком (Фильмы)</td><td>90073874<br>Х/ф &#x27;Ковбои против пришельцев (Фильмы)</td><td>90074560<br>Х/ф &#x27;Люди в черном 3 (Фильмы)</td><td></td></tr>
+<tr><td>Popularity (baseline)</td><td class=hit>2400480<br>ТСН (Инфо)</td><td class=hit>240081<br>Факты (Инфо)</td><td>6500479<br>Мир наизнанку (Познавательное)</td><td>2400467<br>Викна-Новости (Инфо)</td><td class=hit>2400508<br>Сегодня (Инфо) <i>new</i></td><td class="n">0.52</td></tr>
+<tr><td>Personal history (helper)</td><td>90081779<br>Х/ф &#x27;Быть Астрид Линдгрен (Фильмы)</td><td>90056319<br>Х/ф &#x27;Гарри Поттер и тайная ком (Фильмы)</td><td>90038680<br>Х/ф &#x27;Летят журавли (Фильмы)</td><td>90074127<br>Х/ф &#x27;Полночь в Париже (Фильмы)</td><td>90073874<br>Х/ф &#x27;Ковбои против пришельцев (Фильмы)</td><td class="n">0.00</td></tr>
+<tr><td>Content-based filtering</td><td>90081779<br>Х/ф &#x27;Быть Астрид Линдгрен (Фильмы)</td><td>90050383<br>Х/ф &#x27;Гарри Поттер и философски (Фильмы)</td><td>90056319<br>Х/ф &#x27;Гарри Поттер и тайная ком (Фильмы)</td><td>90081167<br>Х/ф &#x27;Призрак в доспехах (Фильмы) <i>new</i></td><td>90073903<br>Х/ф &#x27;Гарри Поттер и Дары Смерт (Фильмы) <i>new</i></td><td class="n">0.00</td></tr>
+<tr><td>Association rules</td><td class=hit>2400480<br>ТСН (Инфо)</td><td class=hit>240081<br>Факты (Инфо)</td><td>6500479<br>Мир наизнанку (Познавательное)</td><td>2400467<br>Викна-Новости (Инфо)</td><td class=hit>2400508<br>Сегодня (Инфо) <i>new</i></td><td class="n">0.52</td></tr>
+<tr><td>Matrix factorization (ALS)</td><td class=hit>2400480<br>ТСН (Инфо)</td><td class=hit>240081<br>Факты (Инфо)</td><td>6500479<br>Мир наизнанку (Познавательное)</td><td>2400467<br>Викна-Новости (Инфо)</td><td class=hit>2400508<br>Сегодня (Инфо) <i>new</i></td><td class="n">0.52</td></tr>
+<tr><td>Personalized PageRank</td><td>90081779<br>Х/ф &#x27;Быть Астрид Линдгрен (Фильмы)</td><td>90056319<br>Х/ф &#x27;Гарри Поттер и тайная ком (Фильмы)</td><td class=hit>2400480<br>ТСН (Инфо)</td><td>90038680<br>Х/ф &#x27;Летят журавли (Фильмы)</td><td>90074127<br>Х/ф &#x27;Полночь в Париже (Фильмы)</td><td class="n">0.07</td></tr>
+<tr><td>Hybrid: candidates + LambdaRank</td><td>2400467<br>Викна-Новости (Инфо)</td><td>400294<br>Квартирный вопрос (Развлечения)</td><td>6500479<br>Мир наизнанку (Познавательное)</td><td class=hit>2400480<br>ТСН (Инфо)</td><td>700389<br>Кто сверху? (Развлечения)</td><td class="n">0.05</td></tr>
+<tr><td><i>Final hybrid, test wk 31–42</i></td><td>2400480<br>ТСН (Инфо)</td><td>240081<br>Факты (Инфо)</td><td>2400508<br>Сегодня (Инфо)</td><td>2400467<br>Викна-Новости (Инфо)</td><td>700389<br>Кто сверху? (Развлечения)</td><td>—</td></tr>
+</table>
+<div class="cap">Table IV. Each method's Top-5 for the two users on the hold-out (id, most frequent title, category); bold = watched in wk 25–30.</div>
+</div>
+<div class="cols">
+<p><b>Familiar vs new.</b> Almost every list is familiar: 96.7% of the hybrid's val slots were already watched by the user, and only 52 of its 4,900 hits were on programmes new to the user (Table I, <code>analysis/segments.txt</code>). CBF is the only method that proposes many new programmes (39% of slots), and it is the weakest. On this data a "discovery" is mostly a miss; we cannot tell from the log whether an unwatched programme would have been enjoyed.</p>
+<p><b>How the methods differ.</b> <i>Association rules</i> capture "people who watch X this week also watch Y", but with lift &gt; 1 and Σconfidence the consequents with most support win — news blocks — so AR collapses to 27 distinct ids in val (14 in test) and copies popularity for both example users. <i>ALS</i> smooths across users: for the heavy viewer it surfaces films (Первый мститель, Воин) of the latent "movie" factor although the user's hours are in news and kids' cartoons (AP 0.04); latent factors miss the strong individual repetition that drives TV. <i>CBF</i> helps where co-view signal is thin — for the light viewer it continues the Harry Potter / film thread — but films rarely recur, so it scores 0. <i>PPR</i> restarts on the user's own history, so its Top-5 are the user's habitual programmes re-weighted by graph neighbours (99% seen); it fixed the heavy user (0.80) but, like history, follows the light viewer's one-off films (0.07). <i>Popularity</i> already does well for anyone who watches mainstream news (0.52 for both users).</p>
+<p><b>Why the hybrid.</b> It is best on val overall (0.7410) and in every tercile, with the largest relative gain for light viewers (0.5419 vs 0.4625). Its top features (gain share) are PPR rank (0.50), PPR score (0.11) and <i>chan_air</i> (0.11): it trusts personalised graph scores, but only for programmes that will actually air on channels the user watches. Cost is modest at this scale — 81 s end-to-end on a laptop, of which every single model takes &lt;5 s — so daily retraining is feasible. For the user the lists are dependable but conservative: 98% of test slots are programmes already watched, half are news.</p>
+<p><b>Failure case and limitations.</b> The light viewer shows the failure mode: the hybrid scores 0.05 while popularity scores 0.52. With 58 labelled hours, mostly one-off films, the re-ranker ranked entertainment shows (Квартирный вопрос, Кто сверху?) and another news block above the Факты and Сегодня bulletins the user actually returned to. Further limits supported by our results: only 10.8% of schedule rows carry an id, so 43.6% of viewing time is invisible to every method; titles vary per airing under one id (e.g. "ТСН. Спецпроект" vs "ТСН"); the absence of a programme from the log does not prove the user never saw it elsewhere; and val covers 6 weeks while the test window is 12. No online experiment was run; no business impact is claimed.</p>
+
+<h2>VI. Discussion</h2>
+<p><b>Failure case (timestamps).</b> The first join matched only 48.4% of views and the schedule looked self-overlapping: mean gap between consecutive airings −2,226 s.</p>
+<pre>count 1.073835e+06  mean -2.226536e+03  ...  (gap &lt; 0) share 0.9996</pre>
+<p><b>Root cause.</b> pandas 3 parses these strings to <code>datetime64[us]</code>, (verified: <code>dtype datetime64[us]</code>), so <code>astype('int64') // 10**9</code> gave units of 1,000 s instead of seconds. <b>Fix + verification:</b> cast to <code>datetime64[s]</code> first; the median gap became 0 s, negative gaps 0.0002%, and matched views rose to 92.8%.</p>
+<p><b>Second defect (ties).</b> When a method had fewer than five positive scores, <code>argsort</code> filled the list with the lowest programme ids instead of the popularity fallback the protocol promises (238 users for AR, 8 cold users everywhere). After the fix AR rose from 0.5683 to 0.6514, history 0.6028→0.6055, PPR 0.6540→0.6558, and the audit confirms the cold-start rule in every method.</p>
+<p><b>What worked.</b> (i) Schedule context (<i>chan_air</i>) — knowing what airs on the user's channels; (ii) learning the fusion on an earlier fold instead of hand-tuning on the hold-out; (iii) allowing repeats.</p>
+<p><b>What surprised / did not work.</b> (i) Popularity is nearly unbeatable by any single course method; (ii) ALS is worst for heavy viewers (0.4076), the opposite of the usual "more data helps"; (iii) adding the older fit2 fold hurt the pointwise re-ranker (0.7366 → 0.7111).</p>
+<p><b>Next improvement.</b> Per-airing rather than per-programme candidates (predict the specific weekly slot), which would let the light-viewer case be resolved by time-of-day rather than by channel alone.</p>
+
+<h2>VII. AI Usage Disclosure</h2>
+<p class="ni"><b>AI tool:</b> Claude Code (CLI) with Claude Opus 5.5 (<code>claude-opus-5-5</code>), one session; the unmodified session export is submitted alongside this PDF. <b>How AI was used:</b> code generation (join, methods, hybrid, audit scripts), debugging (timestamp unit, tie handling), reference lookup (Crossref check of every DOI), drafting this report from the saved outputs in <code>analysis/</code>. Kaggle submissions were uploaded by me through the website.</p>
+<div class="todo"><p><b>[TO FILL BY STUDENT — What I personally verified:</b> describe in your own words the checks you did yourself, e.g. recomputing one AP@5 by hand from <code>analysis/examples.txt</code>, opening the submission CSV, checking the Kaggle score on the screenshot, opening each reference link.<b>]</b></p></div>
+<div class="todo"><p><b>[TO FILL BY STUDENT — What I trusted without verification:</b> e.g. library internals of implicit/LightGBM, the hyperparameters of ALS/PPR (not tuned).<b>]</b></p></div>
+
+<h2>References</h2>
+<div class="refs">
+<p>[1] Y. Hu, Y. Koren, and C. Volinsky, "Collaborative filtering for implicit feedback datasets," in <i>Proc. 8th IEEE Int. Conf. Data Mining (ICDM)</i>, 2008, pp. 263–272. [Online]. Available: https://doi.org/10.1109/ICDM.2008.22. [Accessed: 2026-10-24].</p>
+<p>[2] R. Agrawal, T. Imieliński, and A. Swami, "Mining association rules between sets of items in large databases," in <i>Proc. ACM SIGMOD Int. Conf. Management of Data</i>, 1993, pp. 207–216. [Online]. Available: https://doi.org/10.1145/170035.170072. [Accessed: 2026-10-24].</p>
+<p>[3] M. J. Pazzani and D. Billsus, "Content-based recommendation systems," in <i>The Adaptive Web</i>, LNCS vol. 4321, Springer, 2007, pp. 325–341. [Online]. Available: https://doi.org/10.1007/978-3-540-72079-9_10. [Accessed: 2026-10-24].</p>
+<p>[4] T. H. Haveliwala, "Topic-sensitive PageRank," in <i>Proc. 11th Int. Conf. World Wide Web (WWW)</i>, 2002, pp. 517–526. [Online]. Available: https://doi.org/10.1145/511446.511513. [Accessed: 2026-10-24].</p>
+<p>[5] C. Eksombatchai <i>et al.</i>, "Pixie: A system for recommending 3+ billion items to 200+ million users in real-time," in <i>Proc. World Wide Web Conf. (WWW)</i>, 2018, pp. 1775–1784. [Online]. Available: https://doi.org/10.1145/3178876.3186183. [Accessed: 2026-10-24].</p>
+<p>[6] G. Ke <i>et al.</i>, "LightGBM: A highly efficient gradient boosting decision tree," in <i>Advances in Neural Information Processing Systems</i>, vol. 30, 2017. [Online]. Available: https://papers.nips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html. [Accessed: 2026-10-24].</p>
+<p>[7] sweet.tv — TV program recommender, Kaggle community competition. [Online]. Available: https://www.kaggle.com/competitions/sweettv-tv-program-recommender. [Accessed: 2026-10-24].</p>
+</div>
+</div>
+</body>
+</html>
