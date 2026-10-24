@@ -4,12 +4,10 @@ import pickle, json, numpy as np, pandas as pd
 from core import *
 import methods as M, hybrid as H
 
-g, s, users = load()
-fit_f, fv = Fold('fit', g, s, users), Fold('val', g, s, users)
-Xf, _ = H.build(fit_f); Xv, scv = H.build(fv)
+g, s, users, folds, data, clf, feats, recs = H.val_setup()
+fv = folds['val']; fb = M.pop_order(fv)
+scv = data['val'][1]
 fb = M.pop_order(fv)
-recs = {m: topk(scv[m], fv.items, fb, fv.cold) for m in H.SCORERS}
-clf, feats = H.fit([Xf]); recs['hybrid'] = H.predict(clf, feats, Xv, fv, fb)
 
 # pick: heavy viewer = 95th percentile of history hours, light viewer = 10th percentile (both with val views)
 hrs = fv.hist[fv.hist.user_id.isin(users)].groupby('user_id').sec.sum() / 3600
@@ -29,7 +27,7 @@ for lab, u in [('heavy', heavy), ('light', light)]:
     h = fv.hist[fv.hist.user_id == u]
     top_hist = h.groupby('tv_show_id').sec.sum().sort_values(ascending=False)
     print(f'\n##### {lab} viewer {u}: {hrs[u]:.1f} h labelled history (wk11-24), {h.tv_show_id.nunique()} programmes, '
-          f'{len(truth)} programmes watched in wk25-30')
+          f'official top-{len(truth)} in wk25-30 (# airings with screen time >= 0.8)')
     print('history top-5 by hours:'); [print('   ', name(i), f'{v/3600:.1f} h') for i, v in top_hist.head(5).items()]
     res = {}
     for m, rr in recs.items():

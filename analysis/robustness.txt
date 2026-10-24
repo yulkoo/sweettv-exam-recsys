@@ -1,7 +1,0 @@
-fit: 354576 rows, 281 cand/user, 11s, positives 0.100
-val: 419651 rows, 333 cand/user, 15s, positives 0.100
-               target  hybrid  popularity  history    cbf  assoc_rules    als    ppr
-main: >=min(300s,50%)  0.7410      0.6544   0.6055 0.3671       0.6514 0.4701 0.6558
-    any overlap >=60s  0.7924      0.7340   0.6406 0.4069       0.7279 0.5407 0.6960
-      >=50% of airing  0.5573      0.4647   0.4445 0.2532       0.4673 0.2779 0.4771
-             >=15 min  0.6490      0.5431   0.5509 0.3243       0.5427 0.3656 0.5925

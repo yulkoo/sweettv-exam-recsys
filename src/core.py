@@ -51,11 +51,20 @@ class Fold:
         self.iidx = {it: i for i, it in enumerate(self.items)}
         # cold-start: no labelled watched airing in the history window
         self.cold = ~np.isin(users, self.hist.user_id.unique())
-        if name != 'test':
-            tg = g[(g.wk >= t0) & (g.wk <= t1) & g.user_id.isin(users)]
-            self.truth = tg.groupby('user_id').tv_show_id.agg(lambda x: set(x)).to_dict()
-        else:
-            self.truth = None
+        self.truth = official_truth(g, t0, t1, users) if name != 'test' else None
+        if name != 'test':   # per (user, programme) number of airings with screen time >= 0.8 in the target window
+            tt = g[(g.wk >= t0) & (g.wk <= t1) & (g.frac >= 0.8)]
+            self.target_counts = tt.groupby(['user_id', 'tv_show_id']).size()
+
+
+def official_truth(g, w0, w1, users):
+    """Target as documented on the competition's Data page: keep airings with screen time
+    (watched / airing duration) >= 0.8, count them per user and programme, take the 5 most frequent.
+    Ties: more watched seconds first, then smaller id (the organisers' tie rule is not documented)."""
+    t = g[(g.wk >= w0) & (g.wk <= w1) & (g.frac >= 0.8) & g.user_id.isin(users)]
+    c = t.groupby(['user_id', 'tv_show_id']).agg(n=('sec', 'size'), sec=('sec', 'sum')).reset_index()
+    c = c.sort_values(['user_id', 'n', 'sec', 'tv_show_id'], ascending=[True, False, False, True])
+    return c.groupby('user_id').head(5).groupby('user_id').tv_show_id.agg(set).to_dict()
 
 
 def topk(scores, items, fallback, cold=None, k=K):

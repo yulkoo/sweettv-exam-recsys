@@ -1,0 +1,8 @@
+half-life 4 wk | watched hours                      | MAP@5 = 0.2150
+half-life 4 wk | # watched airings                  | MAP@5 = 0.2869
+half-life 4 wk | # airings with screen time >= 0.8  | MAP@5 = 0.2966
+half-life 4 wk | sum of screen-time fractions       | MAP@5 = 0.3092
+half-life 8 wk | watched hours                      | MAP@5 = 0.2235
+half-life 8 wk | # watched airings                  | MAP@5 = 0.2907
+half-life 8 wk | # airings with screen time >= 0.8  | MAP@5 = 0.3016
+half-life 8 wk | sum of screen-time fractions       | MAP@5 = 0.3106

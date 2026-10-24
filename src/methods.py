@@ -1,7 +1,13 @@
 """Scorers. Each returns a dense (n_users, n_items) score matrix over fold.items."""
 import numpy as np, pandas as pd, scipy.sparse as sp
 
-HALF_LIFE_WEEKS = 4.0
+HALF_LIFE_WEEKS = 8.0
+
+
+def iw(h, fold):
+    """Interaction weight per user-airing: screen-time fraction (the organisers' target unit), decayed by age."""
+    age_w = (fold.h_end - h.air_t0.values) / (7 * 86400)
+    return h.frac.values * 0.5 ** (age_w / HALF_LIFE_WEEKS)
 
 
 def ui_matrix(fold, weight='time_decay'):
@@ -12,8 +18,8 @@ def ui_matrix(fold, weight='time_decay'):
         w = np.ones(len(h))
     elif weight == 'sec':
         w = h.sec.values / 3600
-    else:   # recency-decayed watched hours
-        w = (h.sec.values / 3600) * 0.5 ** (age_w.values / HALF_LIFE_WEEKS)
+    else:   # recency-decayed screen-time fractions
+        w = iw(h, fold)
     r = h.user_id.map(fold.uidx).values; c = h.tv_show_id.map(fold.iidx).values
     return sp.csr_matrix((w, (r, c)), shape=(len(fold.users), len(fold.items)))
 
@@ -22,8 +28,7 @@ def all_item_matrix(fold):
     """User x programme over ALL history items (incl. ones not airing in target), all users (for co-view)."""
     h = fold.hist
     users = np.sort(h.user_id.unique()); items = np.sort(h.tv_show_id.unique())
-    age_w = (fold.h_end - h.air_t0) / (7 * 86400)
-    w = (h.sec.values / 3600) * 0.5 ** (age_w.values / HALF_LIFE_WEEKS)
+    w = iw(h, fold)
     r = np.searchsorted(users, h.user_id.values); c = np.searchsorted(items, h.tv_show_id.values)
     return sp.csr_matrix((w, (r, c)), shape=(len(users), len(items))), users, items
 
@@ -36,8 +41,8 @@ def target_airtime(fold):
 
 # ---------------- popularity baseline ----------------
 def popularity(fold):
-    h = fold.hist[fold.hist.tv_show_id.isin(fold.iidx)]
-    recent = h[h.air_t0 >= fold.h_end - 4 * 7 * 86400]
+    h = fold.hist[fold.hist.tv_show_id.isin(fold.iidx) & (fold.hist.frac >= 0.8)]
+    recent = h[h.air_t0 >= fold.h_end - 4 * 7 * 86400]   # distinct viewers with screen time >= 0.8, last 4 weeks
     pop = recent.groupby('tv_show_id').user_id.nunique().reindex(fold.items).fillna(0).values
     return np.tile(pop.astype(float), (len(fold.users), 1))
 
@@ -126,7 +131,7 @@ def FOLD_LAST(fold):
 
 
 # ---------------- 3. matrix factorisation (implicit ALS) ----------------
-def als(fold, factors=64, reg=0.05, alpha=10.0, iters=20, seed=42):
+def als(fold, factors=8, reg=0.05, alpha=10.0, iters=20, seed=42):
     from implicit.als import AlternatingLeastSquares
     X, users, items = all_item_matrix(fold)
     Xc = X.copy(); Xc.data = np.log1p(alpha * Xc.data)            # confidence = log(1 + alpha * decayed hours)

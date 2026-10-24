@@ -2,11 +2,8 @@
 import pickle, numpy as np, pandas as pd
 from core import *
 import methods as M, hybrid as H
-g, s, users = load()
-ff, fv = Fold('fit', g, s, users), Fold('val', g, s, users)
-Xf, _ = H.build(ff); Xv, scv = H.build(fv); fb = M.pop_order(fv)
-recs = {m: topk(scv[m], fv.items, fb, fv.cold) for m in H.SCORERS}
-clf, feats = H.fit([Xf]); recs['hybrid'] = H.predict(clf, feats, Xv, fv, fb)
+g, s, users, folds, data, clf, feats, recs = H.val_setup()
+fv = folds['val']; fb = M.pop_order(fv)
 hrs = fv.hist.groupby('user_id').sec.sum().reindex(fv.users).fillna(0).values / 3600
 terc = pd.qcut(hrs, 3, labels=['light', 'medium', 'heavy'])
 seen = fv.hist.groupby('user_id').tv_show_id.agg(set).to_dict()

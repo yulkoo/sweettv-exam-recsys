@@ -1,0 +1,12 @@
+fit2: 454649 rows, 361 cand/user, 10s, positives 0.011
+fit: 471344 rows, 374 cand/user, 13s, positives 0.010
+val: 509398 rows, 404 cand/user, 19s, positives 0.010
+candidate recall of val truth: 0.8334
+labels=top5         train=fit       val MAP@5 = 0.3186
+labels=top5         train=fit+fit2  val MAP@5 = 0.3222
+labels=count_cap30  train=fit       val MAP@5 = 0.3228
+labels=count_cap30  train=fit+fit2  val MAP@5 = 0.3249
+labels=log2_count   train=fit       val MAP@5 = 0.3184
+labels=log2_count   train=fit+fit2  val MAP@5 = 0.3251
+labels=top5_graded  train=fit       val MAP@5 = 0.3206
+labels=top5_graded  train=fit+fit2  val MAP@5 = 0.3226

@@ -3,8 +3,8 @@ import numpy as np, pandas as pd
 from core import *
 import methods as M, hybrid as H
 
-g, s, users = load()
-folds = {n: Fold(n, g, s, users) for n in ['fit', 'val', 'test']}
+g, s, users, folds, data, clf, feats, recs = H.val_setup()
+folds['test'] = Fold('test', g, s, users)
 
 print('== 1. temporal separation')
 for n, f in folds.items():
@@ -14,12 +14,8 @@ for n, f in folds.items():
 raw = pd.read_parquet(f'{D}/user_airing.parquet')
 print('view log has any airing in weeks 31-42 (test):', bool((raw.air_t0 >= week_start(31)).any()))
 
-print('== 2. individual methods + hybrid on val (with fixed tie/cold-start rule)')
-data = {n: H.build(f) for n, f in folds.items() if n != 'test'}
+print('== 2. individual methods + hybrid on val (official target: top-5 by # airings with screen time >= 0.8)')
 fv = folds['val']; fb = M.pop_order(fv)
-recs = {m: topk(data['val'][1][m], fv.items, fb, fv.cold) for m in H.SCORERS}
-clf, feats = H.fit([data['fit'][0]])
-recs['hybrid'] = H.predict(clf, feats, data['val'][0], fv, fb)
 ap = {m: np.array([apk(fv.truth.get(u, set()), r) for u, r in zip(fv.users, rr)]) for m, rr in recs.items()}
 for m, a in ap.items():
     print(f'{m:12s} MAP@5={a.mean():.4f}')
@@ -33,8 +29,9 @@ for m in H.SCORERS:
     print(f'hybrid - {m:12s} = {d.mean():+.4f}  95% CI [{np.percentile(bs, 2.5):+.4f}, {np.percentile(bs, 97.5):+.4f}]')
 
 print('== 4. label-shuffle control: re-ranker fitted on permuted labels must lose its gain')
-Xs = data['fit'][0].copy(); Xs['y'] = np.random.default_rng(1).permutation(Xs.y.values)
-clf_s, _ = H.fit([Xs])
+rng1 = np.random.default_rng(1)
+Xs = [d[0].assign(cnt=rng1.permutation(d[0].cnt.values)) for d in (data['fit'], data['fit2'])]
+clf_s, _ = H.fit(Xs)
 print('hybrid with shuffled labels MAP@5 =', round(mapk(fv, H.predict(clf_s, feats, data['val'][0], fv, fb)), 4))
 
 print('== 5. cold-start users get exactly the popularity Top-5 in every method')

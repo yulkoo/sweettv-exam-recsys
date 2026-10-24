@@ -1,7 +1,7 @@
-val candidates 5013 users with target 1244
-popularity   MAP@5=0.65440  0.2s
-history      MAP@5=0.60553  0.3s
-cbf          MAP@5=0.36711  2.7s
-assoc_rules  MAP@5=0.65139  1.2s
-als          MAP@5=0.47012  3.1s
-ppr          MAP@5=0.65581  4.2s
+val candidates 5013 users with target 1233
+popularity   MAP@5=0.21618  0.2s
+history      MAP@5=0.31064  0.2s
+cbf          MAP@5=0.19143  2.4s
+assoc_rules  MAP@5=0.20046  1.2s
+als          MAP@5=0.16955  2.3s
+ppr          MAP@5=0.31416  4.2s

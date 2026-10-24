@@ -22,24 +22,23 @@ for m in NAMES:
                 f'<td class="n">{h}</td><td class="n">{float(seen):.3f}</td></tr>')
 t = t.replace('{{TABLE1}}', '\n'.join(rows))
 
-# Table II
+# Table II: interaction weight (half-life 8) + re-ranker label/folds
 rows = []
-for k, v in re.findall(r'^(.+?)\s+val MAP@5 = ([\d.]+)$', open(f'{A}/select_hybrid.txt').read(), re.M):
-    k = k.replace('HGB pointwise', 'HistGradientBoosting, pointwise').replace('LGBM lambdarank', 'LightGBM LambdaRank') \
-         .replace(', fit+fit2', ', fitted on fit + fit2') if k.endswith('fit2') else k.replace('HGB pointwise', 'HistGradientBoosting, pointwise') \
-         .replace('LGBM lambdarank', 'LightGBM LambdaRank').replace(', fit', ', fitted on fit')
-    cls = ' class="best"' if k == 'LightGBM LambdaRank, fitted on fit' else ''
-    rows.append(f'<tr{cls}><td>{k}{" (final)" if cls else ""}</td><td class="n">{v}</td></tr>')
+for l in open(f'{A}/weights_check.txt'):
+    p = [x.strip() for x in l.split('|')]
+    if p[0] == 'half-life 8 wk':
+        best = 'screen-time' in p[1]
+        rows.append(f'<tr{" class=best" if best else ""}><td>History weight: {html.escape(p[1])}{" (used)" if best else ""}</td><td class="n">{p[2].split("= ")[1]}</td></tr>')
+LN = {'top5': 'binary (in official top-5)', 'count_cap30': '# airings with screen time &ge; 0.8 (cap 30)',
+      'log2_count': 'log2(1 + # airings &ge; 0.8)', 'top5_graded': 'top-5 graded by log2 count'}
+for kind, tr, v in re.findall(r'labels=(\S+)\s+train=(\S+)\s+val MAP@5 = ([\d.]+)', open(f'{A}/select_labels.txt').read()):
+    best = kind == 'count_cap30' and tr == 'fit+fit2'
+    rows.append(f'<tr{" class=best" if best else ""}><td>Re-ranker label {LN[kind]}, trained on {tr}{" (final)" if best else ""}</td><td class="n">{v}</td></tr>')
 t = t.replace('{{TABLE2}}', '\n'.join(rows))
-
-# Table III
-lines = [l for l in open(f'{A}/robustness.txt') if re.search(r'\d\.\d{4}', l)]
-rows = []
-for l in lines:
-    nums = re.findall(r'\d\.\d{4}', l); name = l[:l.index(nums[0])].strip()
-    hy, pop, hist, cbf, ar, als, ppr = nums
-    rows.append(f'<tr><td>{html.escape(name)}</td>' + ''.join(f'<td class="n">{x}</td>' for x in [hy, pop, ar, als, ppr, cbf]) + '</tr>')
-t = t.replace('{{TABLE3}}', '\n'.join(rows))
+RECALL = re.search(r'candidate recall of val truth: ([\d.]+)', open(f'{A}/select_labels.txt').read()).group(1)
+t = t.replace('{{RECALL}}', f'{float(RECALL):.1%}'.replace('%', '%'))
+sub = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'submissions', 'final_hybrid_lambdarank.csv'))
+t = t.replace('{{EX_ROW0}}', sub.tv_show_id[sub.user_id == 8377619604347126107].iloc[0])
 
 # Examples
 s = pd.read_parquet(f'{D}/schedule.parquet'); s = s[s.tv_show_id != 0]
@@ -52,7 +51,7 @@ ex = json.load(open(f'{A}/examples.json'))
 out = []
 for lab, e in ex.items():
     out.append(f'<table class="ex"><tr><th style="width:13%">{lab.capitalize()} viewer <code>{e["user"]}</code><br>{e["hours"]:.1f} h, '
-               f'{e["n_hist_items"]} progr. in wk 11–24; {e["n_truth"]} in wk 25–30</th>'
+               f'{e["n_hist_items"]} progr. in wk 11–24; official top-{e["n_truth"]} in wk 25–30</th>'
                + ''.join(f'<th>#{k}</th>' for k in range(1, 6)) + '<th class="n">AP@5</th></tr>')
     out.append('<tr><td><i>History top-5 by hours</i></td>' + ''.join(cell(i) for i in e['history_top']) + '<td></td></tr>')
     for m, r in e['val'].items():
