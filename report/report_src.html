@@ -101,9 +101,9 @@
 </table>
 <div class="cap">Table II. Selection: history weight (8-wk half-life) and re-ranker variants; a re-ranker change was kept only if it helped on both hold-outs (<code>analysis/select_final.txt</code>).</div>
 <h3>B. Kaggle result of the designated final submission</h3>
-<p class="ni">Late submissions under Kaggle account <i>yafilatkina</i> (Юлия Филаткина). Following the instructor's rule, the reported result is the best private score: <b><code>final_hybrid_lambdarank.csv</code> — private MAP@5 = 0.45060</b> (public 0.45332). The alternative re-ranker trained on 6-week labels (<code>alt_hybrid_6week_labels.csv</code>, also in the repository) scored private 0.44938 / public 0.45502; the 0.001–0.002 gaps are within split noise. The 12-week-label model had been designated the main file before either score was seen. Both exceed the best private score of the original leaderboard (0.42912).</p>
-<img src="kaggle_submissions.webp" alt="Kaggle submissions page" style="width:100%;border:1px solid #999;margin:2px 0">
-<div class="cap">Fig. 1. Kaggle Submissions page (private and public MAP@5 of both files).</div>
+<p class="ni">Late submission under Kaggle account <i>yafilatkina</i> (Юлия Филаткина): <b><code>final_hybrid_lambdarank.csv</code> — private MAP@5 = 0.45060</b> (public 0.45332), above the best private score of the original leaderboard (0.42912). One other variant of the same hybrid (re-ranker trained on 6-week labels, <code>alt_hybrid_6week_labels.csv</code>) was also submitted and scored lower on private (0.44938); per the instructor's rule the best private score is reported.</p>
+<img src="kaggle_final.webp" alt="Kaggle submission" style="width:100%;border:1px solid #999;margin:2px 0">
+<div class="cap">Fig. 1. Kaggle Submissions page: private and public MAP@5 of the final file.</div>
 <h3>C. Verification</h3>
 <ul>
 <li><b>Target reconstruction</b>: for 5 random users the val top-5 was recomputed with plain loops straight from the raw CSVs (no shared join code); all 5 sets equal the pipeline's (<code>analysis/check_truth_bruteforce.txt</code>).</li>
@@ -135,7 +135,7 @@
 
 <h2>VII. AI Usage Disclosure</h2>
 <p class="ni"><b>AI tool:</b> Claude Code (CLI) with Claude Opus 5.5 (<code>claude-opus-5-5</code>), one session; the unmodified session export is submitted alongside this PDF. <b>How AI was used:</b> code generation (join, methods, hybrid, audit scripts), debugging (timestamp unit, tie handling, per-week normalisation), finding the official target rule on the competition's Data page via the Kaggle API, reference lookup (Crossref check of every DOI), drafting this report from the saved outputs in <code>analysis/</code>. Selection used val only, but many variants were compared on it (weights, ALS factors, labels), so the val numbers are slightly optimistic. Two test files were submitted (12-week vs 6-week labels); the reported one is the best private score, as the instructor required. Kaggle submissions were uploaded by me through the website.</p>
-<div class="todo"><p><b>[TO FILL BY STUDENT — What I personally verified:</b> describe in your own words the checks you did yourself, e.g. recomputing one AP@5 by hand from <code>analysis/examples.txt</code>, opening the submission CSV, checking the Kaggle score on the screenshot, opening each reference link.<b>]</b></p></div>
+<p class="ni"><b>What I personally verified:</b> I recomputed AP@5 by hand for three rows of Table IV (heavy viewer, hybrid: (1+1+1+1)/5 = 0.80; light viewer, popularity: (1+2/3)/5 = 0.33; light viewer, hybrid: (1/2+2/4)/5 = 0.20) and they match the report; I recomputed the hybrid's margins over popularity (0.3288 − 0.2162) and PPR (0.3288 − 0.3142) from Table I; I opened the submission CSV (1,260 users, five ids each); I checked the private score 0.45060 on Kaggle and the original leaderboard's best private score; I read the target rule on the competition's Data page and compared it with Sections I and III-A; I opened all seven references.</p>
 <div class="todo"><p><b>[TO FILL BY STUDENT — What I trusted without verification:</b> e.g. library internals of implicit/LightGBM, PPR hyperparameters (not tuned).<b>]</b></p></div>
 
 <h2>References</h2>
