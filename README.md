@@ -25,9 +25,11 @@ checked against a brute-force recomputation in `analysis/check_truth_bruteforce.
 | Personalised PageRank (item co-view graph, restart 0.3) | 0.3142 |
 | **Hybrid: candidates + LightGBM LambdaRank re-ranker (5-seed bag)** | **0.3288** |
 
+The table comes from `audit.py` (float64 features). `hybrid.py`, which writes the Kaggle file, stores features as float32 to fit in 8 GB RAM and prints val MAP@5 0.32846 for the same model (`analysis/hybrid_run.txt`, `analysis/hybrid_run_2.txt`).
+
 Raw outputs: `analysis/audit.txt` (table above, bootstrap CIs, label-shuffle control, cold-start and hand AP checks),
 `analysis/segments.txt`, `analysis/select_labels.txt`, `analysis/select_final.txt` (second selection round, two hold-outs), `analysis/weights_check.txt`, `analysis/als_grid.txt`,
-`analysis/examples.txt`, `analysis/check_truth_bruteforce.txt`, `analysis/hybrid_run.txt`.
+`analysis/examples.txt`, `analysis/check_truth_bruteforce.txt`, `analysis/hybrid_run.txt`, `analysis/hybrid_run_2.txt`.
 
 ## Reproduce
 

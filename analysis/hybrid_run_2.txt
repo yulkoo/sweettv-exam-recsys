@@ -1,0 +1,32 @@
+fit: 471344 rows, 374 cand/user, 12s, positives 0.010
+fit2: 454649 rows, 361 cand/user, 9s, positives 0.011
+fit3: 461204 rows, 366 cand/user, 10s, positives 0.011
+fit4: 459850 rows, 365 cand/user, 12s, positives 0.010
+fit5: 453851 rows, 360 cand/user, 9s, positives 0.011
+val: 509398 rows, 404 cand/user, 16s, positives 0.010
+HYBRID val MAP@5 0.32846
+test: 550696 rows, 437 cand/user, 25s
+L1: 482986 rows, 383 cand/user, 15s, positives 0.011
+L2: 471933 rows, 375 cand/user, 12s, positives 0.011
+L3: 469746 rows, 373 cand/user, 11s, positives 0.011
+L4: 474648 rows, 377 cand/user, 13s, positives 0.011
+L5: 469212 rows, 372 cand/user, 12s, positives 0.011
+wrote submissions/final_hybrid_lambdarank.csv (+ alt_hybrid_6week_labels.csv), total runtime 862 s
+      864,55 real      4525,42 user       391,30 sys
+          2197438464  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+            11742722  page reclaims
+               11898  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+               45150  voluntary context switches
+            23124055  involuntary context switches
+      40307601412662  instructions retired
+      14083186194838  cycles elapsed
+          7388077952  peak memory footprint
