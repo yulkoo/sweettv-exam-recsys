@@ -56,7 +56,8 @@ s = pd.read_parquet(f'{D}/schedule.parquet'); s = s[s.tv_show_id != 0]
 title = s.groupby('tv_show_id').tv_show_title.agg(lambda x: x.value_counts().index[0])
 cat = s.groupby('tv_show_id').tv_show_category.agg(lambda x: x.value_counts().index[0])
 def cell(i, hit=False, seen=True):
-    tt = html.escape(title.get(i, '?').strip(" .'")[:30])
+    tt = title.get(i, '?').rstrip(' .')
+    tt = html.escape(tt if len(tt) <= 32 else tt[:31].rstrip() + '…')
     return f'<td{" class=hit" if hit else ""}>{i}<br>{tt} ({cat.get(i, "?")}){"" if seen else " <i>new</i>"}</td>'
 ex = json.load(open(f'{A}/examples.json'))
 out = []
@@ -70,7 +71,7 @@ for lab, e in ex.items():
                    + f'<td class="n">{r["ap5"]:.2f}</td></tr>')
     out.append('<tr><td><i>Final hybrid, test wk 31–42</i></td>' + ''.join(cell(i) for i in e['test_hybrid']) + '<td>—</td></tr>')
     out.append('</table>')
-out.append('<div class="cap">Table III. Each method\'s Top-5 for the two users on the hold-out (id, most frequent title, category); bold = watched in wk 25–30.</div>')
+out.append('<div class="cap">Table III. Each method\'s Top-5 for the two users on the hold-out (id, most frequent schedule title, cut to 32 characters with “…”, category); bold = watched in wk 25–30.</div>')
 t = t.replace('{{EXAMPLES}}', '\n'.join(out))
 assert '{{' not in t
 open(os.path.join(os.path.dirname(__file__), 'report.html'), 'w').write(t)
