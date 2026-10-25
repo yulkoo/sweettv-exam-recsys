@@ -70,7 +70,7 @@ for lab, e in ex.items():
                    + f'<td class="n">{r["ap5"]:.2f}</td></tr>')
     out.append('<tr><td><i>Final hybrid, test wk 31–42</i></td>' + ''.join(cell(i) for i in e['test_hybrid']) + '<td>—</td></tr>')
     out.append('</table>')
-out.append('<div class="cap">Table IV. Each method\'s Top-5 for the two users on the hold-out (id, most frequent title, category); bold = watched in wk 25–30.</div>')
+out.append('<div class="cap">Table III. Each method\'s Top-5 for the two users on the hold-out (id, most frequent title, category); bold = watched in wk 25–30.</div>')
 t = t.replace('{{EXAMPLES}}', '\n'.join(out))
 assert '{{' not in t
 open(os.path.join(os.path.dirname(__file__), 'report.html'), 'w').write(t)

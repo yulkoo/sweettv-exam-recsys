@@ -1,0 +1,3 @@
+users with non-empty val target: 1233 of 1260
+users with all five target programmes: 1104
+val truth items never watched by the user in history wk 11-24: 2071 of 5889 = 0.352
