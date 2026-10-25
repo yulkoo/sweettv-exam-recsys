@@ -132,7 +132,7 @@
 <li><b>Label-shuffle control</b>: the re-ranker fitted on permuted labels scores 0.0304 on val — the gain is learned, not leaked.</li>
 <li><b>AP@5 code check</b> (<code>audit.py</code>, val fold): for user <code>8377619604347126107</code> the hybrid's val list has hits at ranks 1–4, |truth| = 5; the formula written out in the script gives (1+1+1+1)/5 = 0.8, equal to <code>apk()</code>. (My own hand checks are listed in Section VII.)</li>
 <li><b>Cold start</b>: all 8 cold val users get exactly the popularity Top-5 in all seven rows of Table I.</li>
-<li><b>Submission file</b>: 1,260 rows, template header and user order, five distinct non-zero ids per row; re-running gives the same md5.</li>
+<li><b>Submission file</b>: 1,260 rows, template header and user order, five distinct non-zero ids per row; re-runs are byte-identical.</li>
 </ul>
 
 <h2>V. Recommendation Examples and Strategy Analysis</h2>
@@ -178,8 +178,8 @@
 
 <h2>VII. AI Usage Disclosure</h2>
 <p class="ni"><b>AI tool:</b> Claude Code (CLI) with Claude Opus 5.5 (<code>claude-opus-5-5</code>), one session; the unmodified session export is submitted alongside this PDF. <b>How AI was used:</b> code generation (join, methods, hybrid, audit scripts), debugging (timestamp unit, tie handling, per-week normalisation), finding the official target rule on the competition's Data page via the Kaggle API, reference lookup (Crossref check of every DOI), drafting this report from the saved outputs in <code>analysis/</code>. Selection used val only, but many variants were compared on it (weights, ALS factors, labels), so the val numbers are slightly optimistic. Two test files were submitted (12-week vs 6-week labels); the reported one is the best private score, as the instructor required. Kaggle submissions were uploaded by me through the website.</p>
-<p class="ni"><b>What I personally verified:</b> I recomputed AP@5 by hand for three rows of Table III (heavy viewer, hybrid: (1+1+1+1)/5 = 0.80; light viewer, popularity: (1+2/3)/5 = 0.33; light viewer, hybrid: (1/2+2/4)/5 = 0.20) and they match the report; I recomputed the hybrid's margins over popularity (0.3288 − 0.2162) and PPR (0.3288 − 0.3142) from Table I; I opened the submission CSV (1,260 users, five ids each); I checked the private score 0.45060 on Kaggle and the original leaderboard's best private score; I read the target rule on the competition's Data page and compared it with Sections I and III-A; I opened all seven references.</p>
-<p class="ni"><b>What I trusted without verification:</b> the join, method and hybrid code as a whole; the bootstrap confidence intervals; the brute-force target check (<code>analysis/check_truth_bruteforce.txt</code>); the internals of LightGBM and implicit; and the PPR hyperparameters, which were not tuned.</p>
+<p class="ni" style="text-align:left"><b>What I personally verified:</b> I recomputed AP@5 by hand for three rows of Table III (heavy viewer, hybrid: (1+1+1+1)/5 = 0.80; light viewer, popularity: (1+2/3)/5 = 0.33; light viewer, hybrid: (1/2+2/4)/5 = 0.20) and they match the report; I recomputed the hybrid's margins over popularity (0.3288 − 0.2162) and PPR (0.3288 − 0.3142) from Table I; I opened the submission CSV (1,260 users, five ids each); I checked the private score 0.45060 on Kaggle and the original leaderboard's best private score; I read the target rule on the competition's Data page and compared it with Sections I and III-A; I opened references [1]–[7].</p>
+<p class="ni" style="text-align:left"><b>What I trusted without verification:</b> the join, method and hybrid code as a whole; the bootstrap confidence intervals; the brute-force target check (<code>analysis/check_truth_bruteforce.txt</code>); the internals of LightGBM and implicit; and the PPR hyperparameters, which were not tuned.</p>
 
 <h2>References</h2>
 <div class="refs">
